@@ -69,7 +69,7 @@ jobs:
       - store_artifacts:
           path: tests/_output
   build:
-  docker:
+    docker:
       - image: 'cimg/php:8.0.11'
     steps:
       - checkout
