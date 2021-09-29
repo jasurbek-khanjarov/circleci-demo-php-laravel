@@ -5,7 +5,7 @@ orbs:
 jobs:
   test:
     docker:
-      - image: cimg/php:8.0.11
+      - image: circleci/php:7.2-stretch
       - image: circleci/mysql:8.0.20-ram
         command: mysqld --default-authentication-plugin=mysql_native_password
         environment:
