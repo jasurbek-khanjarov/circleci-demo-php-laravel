@@ -89,8 +89,7 @@ jobs:
             }
           event: always
 workflows:
-  version: 2
-  workflow:
+  test-build-deploy-and-notify:
     jobs:
     - test
     - notify:
