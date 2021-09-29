@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@4.1
+  aws-s3: circleci/aws-s3@3.0
 jobs:
   test:
     docker:
@@ -67,6 +68,20 @@ jobs:
           path: tests/_output
       - store_artifacts:
           path: tests/_output
+  build:
+    steps:
+      - checkout
+      - run: mkdir bucket && echo "lorem ipsum" > bucket/build_asset.txt
+      - aws-s3/sync:
+          arguments: |
+            --acl public-read \
+            --cache-control "max-age=86400"
+          from: bucket
+          to: 's3://jasur-test-bucket-08a2b7c2d6e152045/webinar-demo'
+      - aws-s3/copy:
+          arguments: '--dryrun'
+          from: bucket/build_asset.txt
+          to: 's3://jasur-test-bucket-08a2b7c2d6e152045/webinar-demo'
   notify:
     docker:
       - image: 'cimg/base:stable'
@@ -89,8 +104,15 @@ jobs:
             }
           event: always
 workflows:
-  test-build-deploy-and-notify:
+  test-build-and-notify:
     jobs:
     - test
+    - build:
+        context: demo
+        requires:
+          - test
     - notify:
         context: demo
+        requires:
+          - test
+          - build
