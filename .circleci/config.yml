@@ -120,5 +120,3 @@ workflows:
         context: aws_secrets
     - notify:
         context: slack_secrets
-        requires:
-          - build
