@@ -32,7 +32,7 @@ jobs:
             sudo docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd
             sudo docker-php-ext-install zip bcmath pdo_mysql
       - node/install:
-          install-yarn: false
+          install-yarn: true
       - run: node --version
 
       # composer cache
