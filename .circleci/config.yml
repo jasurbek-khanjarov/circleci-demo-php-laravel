@@ -85,11 +85,11 @@ jobs:
           arguments: |
             --cache-control "max-age=86400"
           from: bucket
-          to: 's3://jasur-webinar-demo-bucket/laravel-demo/'
+          to: 's3://jasur-webinar-demo-bucket/laravel-demo/<<pipeline.number>>/'
       - aws-s3/copy:
           arguments: '--dryrun'
           from: bucket/build_asset.txt
-          to: 's3://jasur-webinar-demo-bucket/laravel-demo/'
+          to: 's3://jasur-webinar-demo-bucket/laravel-demo/<<pipeline.number>>/'
   notify:
     docker:
       - image: 'cimg/base:stable'
