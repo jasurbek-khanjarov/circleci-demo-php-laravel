@@ -117,10 +117,8 @@ workflows:
     jobs:
     - test
     - build:
-        context: demo
-        requires:
-          - test
+        context: aws_secrets
     - notify:
-        context: demo
+        context: slack_secrets
         requires:
           - build
