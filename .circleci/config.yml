@@ -57,8 +57,8 @@ jobs:
 
       # prepare the database
       - run: touch storage/testing.sqlite
+      - run: php artisan --version
       - run: php artisan migrate --env=testing --database=mysql --force
-
       # run tests with phpunit or codecept
       #- run: ./vendor/bin/phpunit
       # this example uses codecept but you're not limited to it
@@ -69,23 +69,17 @@ jobs:
       - store_artifacts:
           path: tests/_output
   build:
-    circleci_ip_ranges: true # opts the job into the IP ranges feature
     docker:
-      - image: 'cimg/php:8.0.11'
+      - image: 'circleci/php:7.2-stretch'
     steps:
       - checkout
       - run: php --version
-      - run: mkdir bucket && echo "lorem ipsum" > bucket/build_asset.txt
-      - aws-s3/sync:
-          arguments: |
-            --acl public-read \
-            --cache-control "max-age=86400"
-          from: bucket
-          to: 's3://jasur-test-bucket-08a2b7c2d6e152045/webinar-demo'
-      - aws-s3/copy:
-          arguments: '--dryrun'
-          from: bucket/build_asset.txt
-          to: 's3://jasur-test-bucket-08a2b7c2d6e152045/webinar-demo'
+      - restore_cache:
+          keys:
+          - composer-v1-{{ checksum "composer.lock" }}
+          - composer-v1-
+      - run: php artisan --version
+      - run: php artisan serve
   notify:
     docker:
       - image: 'cimg/base:stable'
@@ -107,15 +101,34 @@ jobs:
               ]
             }
           event: always
+  deploy:
+    circleci_ip_ranges: true # opts the job into the IP ranges feature
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - run: mkdir bucket && echo "lorem ipsum" > bucket/build_asset.txt
+      - aws-s3/sync:
+          arguments: |
+            --acl public-read \
+            --cache-control "max-age=86400"
+          from: bucket
+          to: 's3://jasur-test-bucket-08a2b7c2d6e152045/webinar-demo'
+      - aws-s3/copy:
+          arguments: '--dryrun'
+          from: bucket/build_asset.txt
+          to: 's3://jasur-test-bucket-08a2b7c2d6e152045/webinar-demo'
 workflows:
   test-build-and-notify:
     jobs:
     - test
     - build:
-        context: demo
         requires:
           - test
     - notify:
         context: demo
         requires:
+          - build
+    - deploy:
+        context: demo
+        requires: 
           - build
