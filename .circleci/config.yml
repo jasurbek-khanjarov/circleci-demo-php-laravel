@@ -86,11 +86,11 @@ jobs:
             --acl public-read \
             --cache-control "max-age=86400"
           from: bucket
-          to: 'arn:aws:s3:::jasur-webinar-demo-bucket'
+          to: 's3://jasur-webinar-demo-bucket/'
       - aws-s3/copy:
           arguments: '--dryrun'
           from: bucket/build_asset.txt
-          to: 'arn:aws:s3:::jasur-webinar-demo-bucket'
+          to: 's3://jasur-webinar-demo-bucket/'
   notify:
     docker:
       - image: 'cimg/base:stable'
