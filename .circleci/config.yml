@@ -69,6 +69,7 @@ jobs:
       - store_artifacts:
           path: tests/_output
   build:
+    circleci_ip_ranges: true # opts the job into the IP ranges feature
     docker:
       - image: 'cimg/php:8.0.11'
     steps:
