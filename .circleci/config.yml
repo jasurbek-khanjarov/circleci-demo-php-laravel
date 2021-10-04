@@ -1,13 +1,22 @@
 version: 2.1
+parameters:
+    COMPOSER_CACHE_VERSION:
+      type: string
+      default: v2
+      description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
+    NODE_CACHE_VERSION:
+      type: string
+      default: v2
+      description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
 orbs:
   slack: circleci/slack@4.1
   aws-s3: circleci/aws-s3@3.0
+  node: circleci/node@4.7.0
 jobs:
   test:
     docker:
       - image: circleci/php:7.2-stretch
       - image: circleci/mysql:8.0.20-ram
-      - image: cimg/node:16.10.0
         command: mysqld --default-authentication-plugin=mysql_native_password
         environment:
           MYSQL_USER: forge
@@ -22,6 +31,8 @@ jobs:
           command: |
             sudo docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd
             sudo docker-php-ext-install zip bcmath pdo_mysql
+      - node/install:
+          install-yarn: true
       - run: node --version
 
       # composer cache
@@ -29,23 +40,23 @@ jobs:
           keys:
           # "composer.json" can be used if "composer.json"
           # is not committed to the repository.
-          - composer-v1-{{ checksum "composer.lock" }}
+          - composer-<< pipeline.parameters.COMPOSER_CACHE_VERSION >>-{{ checksum "composer.lock" }}
           # fallback to using the latest cache if no exact match is found
-          - composer-v1-
+          - composer-<< pipeline.parameters.COMPOSER_CACHE_VERSION >>-
       - run: composer install -n --prefer-dist
       - save_cache:
-          key: composer-v1-{{ checksum "composer.lock" }}
+          key: composer-<< pipeline.parameters.COMPOSER_CACHE_VERSION >>-{{ checksum "composer.lock" }}
           paths:
             - vendor
 
       # node cache
       - restore_cache:
           keys:
-            - node-v4-{{ checksum "package.json" }}
-            - node-v4-
+            - node-<< pipeline.parameters.NODE_CACHE_VERSION >>-{{ checksum "package.json" }}
+            - node-<< pipeline.parameters.NODE_CACHE_VERSION >>-
       - run: npm install
       - save_cache:
-          key: node-v4-{{ checksum "package.json" }}
+          key: node-<< pipeline.parameters.NODE_CACHE_VERSION >>-{{ checksum "package.json" }}
           paths:
             - node_modules
             - ~/.yarn
@@ -66,10 +77,9 @@ jobs:
   build:
     circleci_ip_ranges: true # opts the job into the IP ranges feature
     docker:
-      - image: 'cimg/php:8.0.11'
+      - image: 'cimg/base:stable'
     steps:
       - checkout
-      - run: php --version
       - run: mkdir bucket && echo "lorem ipsum" > bucket/build_asset.txt
       - aws-s3/sync:
           arguments: |
