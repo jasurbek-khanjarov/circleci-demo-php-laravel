@@ -2,11 +2,11 @@ version: 2.1
 parameters:
     COMPOSER_CACHE_VERSION:
       type: string
-      default: v2
+      default: v3
       description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
     NODE_CACHE_VERSION:
       type: string
-      default: v2
+      default: v3
       description: 'Prefix of the cache keys. Change it if you want the next run to be cacheless.'
 orbs:
   slack: circleci/slack@4.1
@@ -15,7 +15,7 @@ orbs:
 jobs:
   test:
     docker:
-      - image: circleci/php:7.2-stretch
+      - image: cimg/7.2.34-browsers
       - image: circleci/mysql:8.0.20-ram
         command: mysqld --default-authentication-plugin=mysql_native_password
         environment:
